@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI PDF Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0a0e27, #1a1f3a);
+  color: white;
+  text-align: center;
+  transition: all 0.4s ease;
+  padding: 20px;
+}
+body.light-mode {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+h1 {
+  margin: 30px 0 20px;
+  font-size: 2.5em;
+  text-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+  background: linear-gradient(135deg, #00ffff, #0099ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+body.light-mode h1 {
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+body.light-mode .container {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+.control-group {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+input[type="file"] {
+  padding: 12px 20px;
+  margin: 15px 0;
+  background: rgba(0, 255, 255, 0.1);
+  color: white;
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+input[type="file"]:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+body.light-mode input[type="file"] {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: #ff6b6b;
+  color: #333;
+}
+body.light-mode input[type="file"]:hover {
+  background: rgba(255, 107, 107, 0.2);
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+button {
+  padding: 12px 20px;
+  margin: 8px;
+  border: none;
+  background: linear-gradient(135deg, #00ffff, #0099ff);
+  color: black;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(0, 255, 255, 0.5);
+  background: linear-gradient(135deg, #00ffff, #00ccff);
+}
+body.light-mode button {
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+body.light-mode button:hover {
+  background: linear-gradient(135deg, #ff8787, #ffb3b3);
+  box-shadow: 0 6px 25px rgba(255, 107, 107, 0.5);
+}
+#themeToggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #00ffff, #0099ff);
+  color: black;
+  border: none;
+  cursor: pointer;
+  border-radius: 50px;
+  font-size: 18px;
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  z-index: 10000;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+#themeToggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 255, 255, 0.6);
+}
+body.light-mode #themeToggle {
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+canvas {
+  border: 2px solid #00ffff;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 255, 255, 0.2);
+  max-width: 90%;
+  height: auto;
+  transition: all 0.3s ease;
+}
+canvas:hover {
+  box-shadow: 0 12px 40px rgba(0, 255, 255, 0.4);
+}
+body.light-mode canvas {
+  border-color: #ff6b6b;
+  box-shadow: 0 8px 30px rgba(255, 107, 107, 0.2);
+}
+body.light-mode canvas:hover {
+  box-shadow: 0 12px 40px rgba(255, 107, 107, 0.4);
+}
+</style>
+</head>
+
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 Night Mode</button>
+
+<div class="container">
+  <h1>📄 AI PDF Editor</h1>
+  
+  <input type="file" id="fileInput" accept="application/pdf" placeholder="Choose PDF">
+  
+  <div class="control-group">
+    <button onclick="prevPage()">⬅ Previous</button>
+    <button onclick="nextPage()">Next ➡</button>
+    <button onclick="zoomIn()">🔍➕ Zoom In</button>
+    <button onclick="zoomOut()">🔍➖ Zoom Out</button>
+    <button onclick="enableDraw()">✏ Draw</button>
+    <button onclick="savePDF()">⬇ Download</button>
+  </div>
+
+  <canvas id="pdfCanvas"></canvas>
+</div>
+
+<script>
+let pdfDoc = null,
+pageNum = 1,
+scale = 1.5,
+canvas = document.getElementById("pdfCanvas"),
+ctx = canvas.getContext("2d"),
+drawing = false,
+drawEnabled = false;
+
+function toggleTheme(){
+  const body = document.body;
+  const themeBtn = document.getElementById("themeToggle");
+  body.classList.toggle("light-mode");
+  if(body.classList.contains("light-mode")){
+    themeBtn.textContent = "☀ Day Mode";
+  } else {
+    themeBtn.textContent = "🌙 Night Mode";
+  }
+}
+
+document.getElementById("fileInput").addEventListener("change", loadPDF);
+
+function loadPDF(e){
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(){
+    const typedarray = new Uint8Array(this.result);
+    pdfjsLib.getDocument(typedarray).promise.then(pdf=>{
+      pdfDoc = pdf;
+      renderPage(pageNum);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderPage(num){
+  pdfDoc.getPage(num).then(page=>{
+    let viewport = page.getViewport({scale:scale});
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    page.render({
+      canvasContext: ctx,
+      viewport: viewport
+    });
+  });
+}
+
+function nextPage(){ if(pageNum < pdfDoc.numPages){ pageNum++; renderPage(pageNum); } }
+function prevPage(){ if(pageNum > 1){ pageNum--; renderPage(pageNum); } }
+
+function zoomIn(){ scale+=0.2; renderPage(pageNum); }
+function zoomOut(){ scale-=0.2; renderPage(pageNum); }
+
+function enableDraw(){ drawEnabled = !drawEnabled; alert("Draw Mode: "+drawEnabled); }
+
+canvas.addEventListener("mousedown", ()=> drawing=true);
+canvas.addEventListener("mouseup", ()=> drawing=false);
+canvas.addEventListener("mousemove", draw);
+
+function draw(e){
+  if(!drawing || !drawEnabled) return;
+  ctx.fillStyle="red";
+  ctx.beginPath();
+  ctx.arc(e.offsetX,e.offsetY,3,0,Math.PI*2);
+  ctx.fill();
+}
+
+function savePDF(){
+  const { jsPDF } = window.jspdf;
+  let pdf = new jsPDF("p","pt",[canvas.width,canvas.height]);
+  let img = canvas.toDataURL("image/png");
+  pdf.addImage(img,"PNG",0,0,canvas.width,canvas.height);
+  pdf.save("edited.pdf");
+}
+</script>
+
+</body>
+</html>
