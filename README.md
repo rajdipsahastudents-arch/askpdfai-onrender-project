@@ -5,7 +5,7 @@ Upload any PDF and ask questions. The AI reads the document and gives instant an
 
 🚀 Live Demo: https://askpdfai.onrender.com
 
-📦 GitHub: https://github.com/your-username/askpdfai
+📦 GitHub: https://github.com/rajdipsahastudents-arch/askpdfai-onrender-project
 
 # 🔥 Features
 
